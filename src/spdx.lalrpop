@@ -1,0 +1,60 @@
+use lalrpop_util::ParseError;
+use constants::{DOCUMENT_REFERENCE, EXCEPTIONS, LICENSES};
+use regex::Regex;
+
+grammar;
+
+extern {
+    type Location = usize;
+    type Error = &'input str;
+}
+
+pub Expr: () = {
+    Expr "OR" Factor => (),
+    Factor
+};
+
+Factor: () = {
+    Factor "AND" Term => (),
+    Term
+};
+
+Term: () = {
+    Id WithClause? => (),
+    "(" Expr ")" => ()
+};
+
+WithClause: () = {
+    "WITH" ExceptionId => ()
+};
+
+ExceptionId: () = {
+    r"[^()\t\n\v\f\r ]+" =>? {
+        let id = <>;
+        if EXCEPTIONS.binary_search(&id).is_ok() {
+            Ok(())
+        } else {
+            // TODO: use errors::SpdxParserError after
+            // https://github.com/nikomatsakis/lalrpop/issues/113 is resolved
+            Err(ParseError::User { error: id })
+        }
+    }
+};
+
+Id: () = {
+    r"[^()\t\n\v\f\r ]+" =>? {
+        lazy_static! {
+          static ref DOCREF_EXPR: Regex = Regex::new(DOCUMENT_REFERENCE).unwrap();
+        }
+        let id = <>;
+        if LICENSES.binary_search(&id.trim_right_matches('+')).is_ok() {
+            Ok(())
+        } else if DOCREF_EXPR.is_match(id) {
+            Ok(())
+        } else {
+            // TODO: use errors::SpdxParserError after
+            // https://github.com/nikomatsakis/lalrpop/issues/113 is resolved
+            Err(ParseError::User { error: id })
+        }
+    }
+};

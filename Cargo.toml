@@ -1,7 +1,17 @@
 [package]
-name = "license-exprs"
-version = "1.2.0"
+name = "license_exprs"
+version = "2.0.0"
 authors = ["Without Boats <woboats@gmail.com>"]
 license = "Apache-2.0/MIT"
 description = "Validate SPDX 2.0 license expressions."
 repository = "https://github.com/withoutboats/license-exprs"
+
+build = "build.rs" # LALRPOP preprocessing
+
+[dependencies]
+lalrpop-util = "0.11.0"
+regex = "0.1"
+lazy_static = "0.1"
+
+[build-dependencies]
+lalrpop = "0.11.0"
