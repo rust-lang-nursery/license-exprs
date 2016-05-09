@@ -20,4 +20,8 @@ fn invalid_license_exprs() {
     assert!(validate_license_expr("LicenseRef-").is_err());
     assert!(validate_license_expr("DocumentRef-LicenseRef-foo").is_err());
     assert!(validate_license_expr("DocumentRef-LicenseRef:-foo").is_err());
+    assert!(validate_license_expr("WITH").is_err());
+    assert!(validate_license_expr("MIT OR WITH").is_err());
+    assert!(validate_license_expr("MIT AND Classpath-exception-2.0").is_err());
+    assert!(validate_license_expr("Classpath-exception-2.0").is_err());
 }
