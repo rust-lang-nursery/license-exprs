@@ -1,5 +1,5 @@
 [package]
-name = "license_exprs"
+name = "license-exprs"
 version = "2.0.0"
 authors = ["Without Boats <woboats@gmail.com>"]
 license = "Apache-2.0/MIT"
