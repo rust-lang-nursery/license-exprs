@@ -369,3 +369,33 @@ pub const EXCEPTIONS: &'static [&'static str] = &[
     "openvpn-openssl-exception",
     "u-boot-exception-2.0",
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::{EXCEPTIONS, LICENSES};
+
+    #[test]
+    fn license_list_is_sorted() {
+        let licenses = Vec::from(LICENSES);
+        let mut sorted_licenses = licenses.clone();
+        sorted_licenses.sort();
+        assert_eq!(
+            licenses,
+            sorted_licenses,
+            "LICENSES must be sorted lexicographically for binary_search to work"
+        );
+    }
+
+    #[test]
+    fn exception_list_is_sorted() {
+        let exceptions = Vec::from(EXCEPTIONS);
+        let mut sorted_exceptions = exceptions.clone();
+        sorted_exceptions.sort();
+        assert_eq!(
+            exceptions,
+            sorted_exceptions,
+            "EXCEPTIONS must be sorted lexicographically for binary_search to work"
+        );
+    }
+
+}
