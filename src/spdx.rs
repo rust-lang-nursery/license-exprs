@@ -42,9 +42,13 @@ pub const LICENSES: &'static [&'static str] = &[
     "BSD-3-Clause-Attribution",
     "BSD-3-Clause-Clear",
     "BSD-3-Clause-LBNL",
+    "BSD-3-Clause-No-Nuclear-License",
+    "BSD-3-Clause-No-Nuclear-License-2014",
+    "BSD-3-Clause-No-Nuclear-Warranty",
     "BSD-4-Clause",
     "BSD-4-Clause-UC",
     "BSD-Protection",
+    "BSD-Source-Code",
     "BSL-1.0",
     "Bahyph",
     "Barr",
@@ -210,6 +214,7 @@ pub const LICENSES: &'static [&'static str] = &[
     "NRL",
     "NTP",
     "Naumen",
+    "Net-SNMP",
     "NetCDF",
     "Newsletr",
     "Nokia",
@@ -278,15 +283,19 @@ pub const LICENSES: &'static [&'static str] = &[
     "Sendmail",
     "SimPL-2.0",
     "Sleepycat",
-    "StandardML-NJ",
     "Spencer-86",
     "Spencer-94",
     "Spencer-99",
+    "StandardML-NJ",
     "SugarCRM-1.1.3",
     "TCL",
+    "TCP-wrappers",
     "TMate",
     "TORQUE-1.1",
     "TOSL",
+    "UPL-1.0",
+    "Unicode-DFS-2015",
+    "Unicode-DFS-2016",
     "Unicode-TOU",
     "Unlicense",
     "VOSTROM",
@@ -294,6 +303,7 @@ pub const LICENSES: &'static [&'static str] = &[
     "Vim",
     "W3C",
     "W3C-19980720",
+    "W3C-20150513",
     "WTFPL",
     "WXwindows",
     "Watcom-1.0",
@@ -337,25 +347,55 @@ pub const EXCEPTIONS: &'static [&'static str] = &[
     "Autoconf-exception-2.0",
     "Autoconf-exception-3.0",
     "Bison-exception-2.2",
-    "Classpath-exception-2.0",
     "CLISP-exception-2.0",
+    "Classpath-exception-2.0",
     "DigiRule-FOSS-exception",
-    "eCos-exception-2.0",
-    "Fawkes-Runtime-exception",
     "FLTK-exception",
+    "Fawkes-Runtime-exception",
     "Font-exception-2.0",
-    "freertos-exception-2.0",
     "GCC-exception-2.0",
     "GCC-exception-3.1",
+    "LZMA-exception",
+    "Libtool-exception",
+    "Nokia-Qt-exception-1.1",
+    "OCCT-exception-1.0",
+    "Qwt-exception-1.0",
+    "WxWindows-exception-3.1",
+    "eCos-exception-2.0",
+    "freertos-exception-2.0",
     "gnu-javamail-exception",
     "i2p-gpl-java-exception",
-    "Libtool-exception",
-    "LZMA-exception",
     "mif-exception",
-    "Nokia-Qt-exception-1.1",
     "openvpn-openssl-exception",
-    "Qwt-exception-1.0",
     "u-boot-exception-2.0",
-    "WxWindows-exception-3.1",
-    "OCCT-exception-1.0",
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::{EXCEPTIONS, LICENSES};
+
+    #[test]
+    fn license_list_is_sorted() {
+        let licenses = Vec::from(LICENSES);
+        let mut sorted_licenses = licenses.clone();
+        sorted_licenses.sort();
+        assert_eq!(
+            licenses,
+            sorted_licenses,
+            "LICENSES must be sorted lexicographically for binary_search to work"
+        );
+    }
+
+    #[test]
+    fn exception_list_is_sorted() {
+        let exceptions = Vec::from(EXCEPTIONS);
+        let mut sorted_exceptions = exceptions.clone();
+        sorted_exceptions.sort();
+        assert_eq!(
+            exceptions,
+            sorted_exceptions,
+            "EXCEPTIONS must be sorted lexicographically for binary_search to work"
+        );
+    }
+
+}
