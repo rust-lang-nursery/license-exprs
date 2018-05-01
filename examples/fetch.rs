@@ -1,39 +1,23 @@
-// `error_chain!` can recurse deeply
-#![recursion_limit = "1024"]
-
 #[macro_use]
-extern crate error_chain;
+extern crate failure;
 extern crate serde_json;
 extern crate reqwest;
 
 use std::io::{self, Write};
 use std::{env, process};
 
+use failure::Error;
 use serde_json::{Value, map};
-
-// We'll put our errors in a `errors` module
-mod errors {
-    // Create the Error, ErrorKind, ResultExt, and Result types
-    #[allow(unused_doc_comment)]
-    error_chain!{
-        // Automatic conversions between this error chain and other
-        // error types not defined by the `error_chain!`.
-        foreign_links {
-            IO(::std::io::Error);
-            Reqwest(::reqwest::Error);
-        }
-    }
-}
 
 type Map = map::Map<String, Value>;
 
-fn download<F>(uri: &str, mut action: F, debug: bool) -> errors::Result<()>
-    where F: FnMut(Map) -> errors::Result<()> {
+fn download<F>(uri: &str, mut action: F, debug: bool) -> Result<(), Error>
+    where F: FnMut(Map) -> Result<(), Error> {
     let json: Value = reqwest::get(uri)?.json()?;
     let json = if let Value::Object(m) = json {
         m
     } else {
-        bail!("Malformed JSON: {:?}", json)
+        return Err(format_err!("Malformed JSON: {:?}", json));
     };
 
     if debug {
@@ -43,15 +27,15 @@ fn download<F>(uri: &str, mut action: F, debug: bool) -> errors::Result<()>
     action(json)
 }
 
-fn get<'a>(m: &'a Map, k: &str) -> errors::Result<&'a Value> {
+fn get<'a>(m: &'a Map, k: &str) -> Result<&'a Value, Error> {
     if let Some(v) = m.get(k) {
         Ok(v)
     } else {
-        bail!("Malformed JSON: {:?} lacks {}", m, k)
+        Err(format_err!("Malformed JSON: {:?} lacks {}", m, k))
     }
 }
 
-fn main1(args: &[String]) -> errors::Result<()> {
+fn main1(args: &[String]) -> Result<(), Error> {
     let mut upstream_tag = "master";
     let mut debug = false;
     for e in args {
@@ -63,7 +47,7 @@ fn main1(args: &[String]) -> errors::Result<()> {
                 upstream_tag = &s;
             },
             _ => {
-                bail!("Unknown option {:?}", e)
+                return Err(format_err!("Unknown option {:?}", e));
             }
         }
     }
@@ -97,7 +81,7 @@ fn main1(args: &[String]) -> errors::Result<()> {
         let licenses = if let &Value::Array(ref v) = licenses {
             v
         } else {
-            bail!("Malformed JSON: {:?}", licenses)
+            return Err(format_err!("Malformed JSON: {:?}", licenses));
         };
         writeln!(stderr, "#licenses == {}", licenses.len())?;
 
@@ -106,7 +90,7 @@ fn main1(args: &[String]) -> errors::Result<()> {
             let lic = if let Value::Object(ref m) = *lic {
                 m
             } else {
-                bail!("Malformed JSON: {:?}", lic)
+                return Err(format_err!("Malformed JSON: {:?}", lic));
             };
             if debug {
                 writeln!(stderr, "{:?},{:?}", get(&lic, "licenseId"), get(&lic, "name"))?;
@@ -116,7 +100,7 @@ fn main1(args: &[String]) -> errors::Result<()> {
             if let &Value::String(ref s) = lic_id {
                 v.push(s);
             } else {
-                bail!("Malformed JSON: {:?}", lic_id);
+                return Err(format_err!("Malformed JSON: {:?}", lic_id));
             }
         }
         v.sort();
@@ -125,7 +109,7 @@ fn main1(args: &[String]) -> errors::Result<()> {
         if let &Value::String(ref s) = lic_list_ver {
             writeln!(stdout, "pub const VERSION: &'static str = {:?};", s)?;
         } else {
-            bail!("Malformed JSON: {:?}", lic_list_ver)
+            return Err(format_err!("Malformed JSON: {:?}", lic_list_ver));
         }
         writeln!(stdout)?;
         writeln!(stdout, "pub const LICENSES: &'static [&'static str] = &[")?;
@@ -147,7 +131,7 @@ fn main1(args: &[String]) -> errors::Result<()> {
         let exceptions = if let &Value::Array(ref v) = exceptions {
             v
         } else {
-            bail!("Malformed JSON: {:?}", exceptions)
+            return Err(format_err!("Malformed JSON: {:?}", exceptions));
         };
         writeln!(stderr, "#exceptions == {}", exceptions.len())?;
 
@@ -156,7 +140,7 @@ fn main1(args: &[String]) -> errors::Result<()> {
             let exc = if let Value::Object(ref m) = *exc {
                 m
             } else {
-                bail!("Malformed JSON: {:?}", exc)
+                return Err(format_err!("Malformed JSON: {:?}", exc))
             };
             if debug {
                 writeln!(stderr, "{:?},{:?}", get(&exc, "licenseExceptionId"), get(&exc, "name"))?;
@@ -166,7 +150,7 @@ fn main1(args: &[String]) -> errors::Result<()> {
             if let &Value::String(ref s) = lic_exc_id {
                 v.push(s);
             } else {
-                bail!("Malformed JSON: {:?}", lic_exc_id)
+                return Err(format_err!("Malformed JSON: {:?}", lic_exc_id));
             };
         }
 
@@ -186,9 +170,7 @@ fn main1(args: &[String]) -> errors::Result<()> {
 fn main() {
     let args = env::args().skip(1).collect::<Vec<_>>();
     if let Err(ref e) = main1(args.as_ref()) {
-        use error_chain::ChainedError; // trait which holds `display_chain`
-
-        writeln!(io::stderr(), "{}", e.display_chain()).expect("writeln to stderr");
+        writeln!(io::stderr(), "{}", e).expect("writeln to stderr");
         process::exit(1);
     }
 }
