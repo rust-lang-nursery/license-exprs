@@ -15,9 +15,9 @@ type Result<T, E = failure::Error> = std::result::Result<T, E>;
 
 pub fn parse_license_expr(license_expr: &str) -> Result<parser_types::Disjunction> {
     let lexer = lexer::Lexer::new(license_expr);
-    parser::DisjunctionParser::new()
+    Ok(parser::DisjunctionParser::new()
         .parse(lexer)
-        .map_err(|_| failure::err_msg("foo"))
+        .map_err(|e| e.map_token(|t| t.to_string()))?)
 }
 
 pub fn validate_license_expr(license_expr: &str) -> Result<()> {
