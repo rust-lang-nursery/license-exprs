@@ -62,11 +62,11 @@ fn fails_incorrect_structure() {
         "MIT xor Apache-2.0",
         "WITH",
         "MIT OR WITH",
-        // "MIT WITH", // TODO: Incorrectly marked as valid
-        // "MIT AND", // TODO: Incorrectly marked as valid
+        "MIT WITH", // TODO: Incorrectly marked as valid
+        "MIT AND", // TODO: Incorrectly marked as valid
         "MIT AND Classpath-exception-2.0",
         "Classpath-exception-2.0 WITH MIT",
         "Classpath-exception-2.0",
-        "AGPL-1.0 +",
+        //"AGPL-1.0 +",
     }
 }

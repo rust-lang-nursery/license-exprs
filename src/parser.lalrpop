@@ -1,0 +1,62 @@
+use lexer;
+use parser_types::*;
+
+grammar<'input>;
+
+pub Disjunction: Disjunction<'input> = {
+  <c:Conjunction> => Disjunction { head: c, tail: None },
+  <c:Conjunction> OR <d:Disjunction> => Disjunction { head: c, tail: Some(Box::new(d)) },
+};
+
+pub Conjunction: Conjunction<'input> = {
+  <t:Term> => Conjunction { head: t, tail: None },
+  <t:Term> AND <c:Conjunction> => Conjunction { head: t, tail: Some(Box::new(c)) },
+};
+
+pub Term: Term<'input> = {
+  <i:LicenseId> <p:"+"?> => {
+    if let lexer::Token::LicenseId(id) = i {
+      Term::License(License {
+        id: LicenseId::SPDX(id),
+        exception: None,
+        or_later: p.is_some(),
+      })
+    } else { unreachable!() }
+  },
+  <i:LicenseId> <p:"+"?> WITH <e:ExceptionId> => {
+    if let (lexer::Token::LicenseId(id), lexer::Token::ExceptionId(ex)) = (i, e) {
+      Term::License(License {
+        id: LicenseId::SPDX(id),
+        exception: Some(Exception(ex)),
+        or_later: p.is_some(),
+      })
+    } else { unreachable!() }
+  },
+  <r:LicenseRef> => {
+    if let lexer::Token::LicenseRef(doc, lic) = r {
+      Term::License(License {
+        id: LicenseId::Other(doc, lic),
+        exception: None,
+        or_later: false,
+      })
+    } else { unreachable!() }
+  },
+  "(" <d:Disjunction> ")" => Term::Bracketed(Box::new(d)),
+};
+
+extern {
+  type Location = usize;
+  type Error = failure::Error;
+
+  enum lexer::Token<'input> {
+    LicenseId => lexer::Token::LicenseId(_),
+    ExceptionId => lexer::Token::ExceptionId(_),
+    LicenseRef => lexer::Token::LicenseRef(_, _),
+    "(" => lexer::Token::OpenParen,
+    ")" => lexer::Token::CloseParen,
+    "+" => lexer::Token::Plus,
+    OR => lexer::Token::Or,
+    AND => lexer::Token::And,
+    WITH => lexer::Token::With,
+  }
+}
