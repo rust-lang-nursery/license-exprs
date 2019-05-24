@@ -6,6 +6,7 @@ mod spdx;
 extern crate lazy_static;
 #[macro_use]
 extern crate lalrpop_util;
+#[macro_use]
 extern crate failure;
 extern crate regex;
 

@@ -2,10 +2,6 @@
 
 This crate validates [SPDX 2.1 license expressions][SPDX-license-expressions] using short identifiers from the [SPDX 3.1 License List][SPDX-license-list].
 
-## Limitations
-
-Parentheses are [not currently supported][parens].
-
 ## License
 
 Licensed under the [Apache License, Version 2.0][Apache-2.0] ([`LICENSE-APACHE`](LICENSE-APACHE)) or the [MIT license][MIT] ([`LICENSE-MIT`](LICENSE-MIT)), at your option.

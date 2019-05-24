@@ -15,7 +15,7 @@ pub enum Token<'a> {
 
 impl<'a> std::fmt::Display for Token<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "TOKEN")
+        std::fmt::Debug::fmt(self, f)
     }
 }
 
@@ -78,7 +78,7 @@ impl<'a> Iterator for Lexer<'a> {
             Some('(') => Some(Ok(Token::OpenParen)),
             Some(')') => Some(Ok(Token::CloseParen)),
             _ => match TEXTTOKEN.find(self.inner) {
-                None => Some(Err(failure::err_msg("Hello"))),
+                None => Some(Err(format_err!("Unparseable characters found after {}", self.inner))),
                 Some(m) => {
                     if m.as_str() == "WITH" {
                         Some(Ok(Token::With))
@@ -99,7 +99,7 @@ impl<'a> Iterator for Lexer<'a> {
                         } else if let Some(c) = LICREF.captures(m.as_str()) {
                             Some(Ok(Token::LicenseRef(None, c.get(1).unwrap().as_str())))
                         } else {
-                            Some(Err(failure::err_msg("Hello")))
+                            Some(Err(format_err!("Invalid term found: {}", m.as_str())))
                         }
                     }
                 }
@@ -121,19 +121,19 @@ impl<'a> Iterator for Lexer<'a> {
 fn lex_all_the_things() {
     let text = "MIT OR + () Apache-2.0 WITH AND LicenseRef-World Classpath-exception-2.0 DocumentRef-Test:LicenseRef-Hello";
     let mut lexer = Lexer::new(text);
-    assert_eq!(lexer.next(), Some(Token::LicenseId("MIT")));
-    assert_eq!(lexer.next(), Some(Token::Or));
-    assert_eq!(lexer.next(), Some(Token::Plus));
-    assert_eq!(lexer.next(), Some(Token::OpenParen));
-    assert_eq!(lexer.next(), Some(Token::CloseParen));
-    assert_eq!(lexer.next(), Some(Token::LicenseId("Apache-2.0")));
-    assert_eq!(lexer.next(), Some(Token::With));
-    assert_eq!(lexer.next(), Some(Token::And));
-    assert_eq!(lexer.next(), Some(Token::LicenseRef(None, "World")));
+    assert_eq!(lexer.next().unwrap().unwrap().1, Token::LicenseId("MIT"));
+    assert_eq!(lexer.next().unwrap().unwrap().1, Token::Or);
+    assert_eq!(lexer.next().unwrap().unwrap().1, Token::Plus);
+    assert_eq!(lexer.next().unwrap().unwrap().1, Token::OpenParen);
+    assert_eq!(lexer.next().unwrap().unwrap().1, Token::CloseParen);
+    assert_eq!(lexer.next().unwrap().unwrap().1, Token::LicenseId("Apache-2.0"));
+    assert_eq!(lexer.next().unwrap().unwrap().1, Token::With);
+    assert_eq!(lexer.next().unwrap().unwrap().1, Token::And);
+    assert_eq!(lexer.next().unwrap().unwrap().1, Token::LicenseRef(None, "World"));
     assert_eq!(
-        lexer.next(),
-        Some(Token::ExceptionId("Classpath-exception-2.0"))
+        lexer.next().unwrap().unwrap().1,
+        Token::ExceptionId("Classpath-exception-2.0")
     );
-    assert_eq!(lexer.next(), Some(Token::LicenseRef(Some("Test"), "Hello")));
-    assert_eq!(lexer.next(), None);
+    assert_eq!(lexer.next().unwrap().unwrap().1, Token::LicenseRef(Some("Test"), "Hello"));
+    assert!(lexer.next().is_none());
 }
